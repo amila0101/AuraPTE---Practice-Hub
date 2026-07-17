@@ -126,14 +126,14 @@ const LandingPage = () => {
           style={{ backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)", backgroundSize: "48px 48px" }} />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-12 items-center">
 
             {/* Left — copy */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="pb-12 lg:pb-16 pt-4"
+              className="pb-2 lg:pb-16 pt-2"
             >
               {/* Headline — tight tracking */}
               <h1 className="text-[2.1rem] sm:text-[2.8rem] lg:text-[3.2rem] font-extrabold leading-[1.08] tracking-[-0.02em] text-foreground">
@@ -176,7 +176,7 @@ const LandingPage = () => {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="flex items-center justify-center mt-6 lg:mt-0"
+              className="flex items-center justify-center -mt-2 lg:mt-0"
             >
               <img
                 src="/assets/hero-illustration.png"
