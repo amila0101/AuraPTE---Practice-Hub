@@ -1,0 +1,16 @@
+project_id = "axbsktmitqicyvjaqeio"
+
+[functions.generate-question]
+verify_jwt = false
+
+[functions.score-answer]
+verify_jwt = false
+
+[functions.elevenlabs-tts]
+verify_jwt = false
+
+[functions.elevenlabs-stt]
+verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = false

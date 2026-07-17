@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 120 20% 98%;
+    --foreground: 220 20% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 16%;
+
+    --primary: 145 63% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 15% 95%;
+    --secondary-foreground: 220 20% 16%;
+
+    --muted: 210 15% 95%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 38 100% 55%;
+    --accent-foreground: 220 20% 16%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 145 63% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 100% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 210 90% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --speaking: 262 70% 58%;
+    --writing: 210 90% 55%;
+    --reading: 38 100% 55%;
+    --listening: 0 72% 55%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 145 63% 42%;
+
+    --radius: 1rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(145 63% 42%), hsl(145 63% 36%));
+    --gradient-hero: linear-gradient(135deg, hsl(145 63% 42%), hsl(170 60% 40%));
+    --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.06);
+    --shadow-elevated: 0 8px 24px -4px rgb(0 0 0 / 0.1);
+    --shadow-button: 0 4px 0 0;
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 210 20% 95%;
+    --card: 220 20% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 20% 12%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 145 63% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 38 100% 55%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 210 20% 95%;
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 145 63% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card rounded-2xl border-2 p-5 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .stat-card:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+  }
+
+  .nav-link {
+    @apply flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all duration-200 text-foreground/70;
+  }
+
+  .nav-link:hover {
+    @apply bg-muted text-foreground;
+  }
+
+  .nav-link-active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  .wave-bar {
+    @apply w-1 rounded-full bg-primary;
+    animation: wave 1.2s ease-in-out infinite;
+  }
+
+  .practice-category {
+    @apply bg-card rounded-2xl border-2 p-6 cursor-pointer transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .practice-category:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-3px);
+  }
+
+  .btn-3d {
+    box-shadow: 0 4px 0 0 hsl(var(--primary) / 0.4);
+    transform: translateY(0);
+    transition: all 0.1s ease;
+  }
+
+  .btn-3d:active {
+    box-shadow: 0 1px 0 0 hsl(var(--primary) / 0.4);
+    transform: translateY(3px);
+  }
+}
+
+@keyframes wave {
+  0%, 100% { height: 8px; }
+  50% { height: 24px; }
+}
