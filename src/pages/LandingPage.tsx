@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Mic, PenLine, BookOpenCheck, Headphones, Zap, ArrowRight,
   CheckCircle2, GraduationCap, BarChart3, BookOpen, Brain,
   Download, Globe, ChevronRight, Users, Award, Clock, Shield,
-  Star, Cpu,
+  Star, Cpu, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -64,6 +64,7 @@ const TOOLS = [
 // ── Main component ────────────────────────────────────────────────────────────
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
@@ -81,10 +82,39 @@ const LandingPage = () => {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-xs h-8 px-3" onClick={() => navigate("/login")}>Log in</Button>
+            <Button variant="ghost" size="sm" className="text-xs h-8 px-3 hidden sm:inline-flex" onClick={() => navigate("/login")}>Log in</Button>
             <Button size="sm" className="text-xs h-8 px-4 font-bold" onClick={() => navigate("/signup")}>Start Free →</Button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-xl hover:bg-muted transition-colors text-foreground"
+              aria-label="Toggle Menu"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
+
+        {/* ── MOBILE NAVBAR DROPDOWN ──────────────────────────────────────── */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/70 bg-card p-4 space-y-3 shadow-lg">
+            <nav className="flex flex-col space-y-2 text-sm font-semibold text-muted-foreground">
+              {[["Features","#features"],["Practice","#practice"],["Tools","#tools"],["PTE Guide","#knowledge"]].map(([label,href])=>(
+                <a
+                  key={label}
+                  href={href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-foreground hover:bg-muted/50 px-3 py-2 rounded-lg transition-colors"
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
+            <div className="pt-2 border-t border-border/50 flex flex-col gap-2">
+              <Button variant="outline" className="w-full justify-center text-sm font-bold" onClick={() => { setMobileMenuOpen(false); navigate("/login"); }}>Log in</Button>
+              <Button className="w-full justify-center text-sm font-bold" onClick={() => { setMobileMenuOpen(false); navigate("/signup"); }}>Start Free →</Button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
@@ -146,7 +176,7 @@ const LandingPage = () => {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="hidden lg:flex items-center justify-center"
+              className="flex items-center justify-center mt-6 lg:mt-0"
             >
               <img
                 src="/assets/hero-illustration.png"
@@ -244,77 +274,7 @@ const LandingPage = () => {
       </section>
 
 
-      {/* ── SCORING ENGINE CALLOUT ─────────────────────────────────────────── */}
-      <section className="bg-muted/30 border-y border-border/60 py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 items-center">
-            {/* Left */}
-            <div className="space-y-5">
-              <div className="text-[13px] font-bold uppercase tracking-widest text-primary">Scoring Engine</div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Built for Real PTE Accuracy</h2>
-              <p className="text-base text-muted-foreground max-w-lg">
-                AuraPTE uses a hybrid scoring architecture — not a single AI model guessing your score. Each question type gets the exact method it deserves.
-              </p>
-              <div className="space-y-3">
-                {[
-                  { icon: Mic,        label: "Speaking", method: "Advanced Neural ASR · WPM · LCS · Non-linear confidence curve", color: "text-primary", bg: "bg-primary/10" },
-                  { icon: PenLine,    label: "Writing",  method: "LLM Assessment · Raw sub-scores · TypeScript weighted math", color: "text-warning", bg: "bg-warning/10" },
-                  { icon: BookOpenCheck, label: "Reading",  method: "100% deterministic — pure string algorithms, zero AI", color: "text-success", bg: "bg-success/10" },
-                  { icon: Headphones, label: "Listening", method: "100% deterministic — LCS / exact match / negative marking", color: "text-warning", bg: "bg-warning/10" },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-start gap-3 rounded-xl border border-border/50 bg-card px-4 py-3">
-                    <div className={`h-8 w-8 rounded-lg ${row.bg} flex items-center justify-center shrink-0 mt-0.5`}>
-                      <row.icon className={`h-4 w-4 ${row.color}`} />
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-foreground">{row.label}</div>
-                      <div className="text-[13px] text-muted-foreground">{row.method}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Right — accuracy card */}
-            <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
-              <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
-                <span className="text-[13px] font-black uppercase tracking-widest text-muted-foreground">Accuracy vs Real PTE</span>
-                <span className="text-[12px] text-muted-foreground">After all fixes</span>
-              </div>
-              <div className="divide-y divide-border/40">
-                {[
-                  { skill: "Reading & Listening", pct: 100, label: "Deterministic", color: "bg-success" },
-                  { skill: "Speaking (Audio)",    pct: 86,  label: "Neural ASR", color: "bg-primary" },
-                  { skill: "Writing",             pct: 78,  label: "AI + Weights", color: "bg-warning" },
-                ].map((row) => (
-                  <div key={row.skill} className="px-5 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[14px] font-semibold text-foreground">{row.skill}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[12px] text-muted-foreground">{row.label}</span>
-                        <span className="text-[15px] font-extrabold text-foreground">{row.pct}%</span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${row.pct}%` }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        viewport={{ once: true }}
-                        className={`h-full rounded-full ${row.color}`}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="px-5 py-3 bg-primary/5 border-t border-primary/15 flex items-center justify-between">
-                <span className="text-[13px] font-bold text-primary">Overall System Accuracy</span>
-                <span className="text-[15px] font-black text-primary">~95% Match</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── STUDY TOOLS ───────────────────────────────────────────────────── */}
       <section id="tools" className="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6">
