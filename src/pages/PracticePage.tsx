@@ -240,6 +240,7 @@ const PracticePage = () => {
                         : question.sub_type === "Describe Image" ? 40
                         : question.sub_type === "Re-tell Lecture" ? 40
                         : 10}
+              autoStart={true}
               onSubmit={handleAudioSubmit}
               disabled={isScoringAudio}
             />

@@ -13,6 +13,8 @@ interface AudioRecorderProps {
   onSubmit: (blob: Blob) => void;
   /** Disable submit while parent is processing */
   disabled?: boolean;
+  /** Automatically start the preparation countdown when mounted */
+  autoStart?: boolean;
 }
 
 function formatTime(sec: number): string {
@@ -26,6 +28,7 @@ export default function AudioRecorder({
   maxSeconds = 40,
   onSubmit,
   disabled = false,
+  autoStart = false,
 }: AudioRecorderProps) {
   const {
     isRecording, isPreparing, audioBlob, audioUrl,
@@ -39,6 +42,13 @@ export default function AudioRecorder({
   useEffect(() => {
     if (isRecording && durationSec >= maxSeconds) stopRef.current();
   }, [isRecording, durationSec, maxSeconds]);
+
+  // Auto-start if requested
+  useEffect(() => {
+    if (autoStart) {
+      start(prepSeconds);
+    }
+  }, [autoStart, prepSeconds, start]);
 
   const handleSubmit = () => { if (audioBlob) onSubmit(audioBlob); };
 

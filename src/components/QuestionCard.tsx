@@ -67,8 +67,6 @@ const QuestionCard = ({ question, direction, onAnswerChange }: QuestionCardProps
 // Sub-type specific rendering
 function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onAnswerChange?: (answer: string) => void }) {
   const st = question.subType;
-  const [recordingReady, setRecordingReady] = useState(false);
-
   // Prep/record times based on sub-type (matching real PTE timings)
   const getSpeakingTimes = (subType: string) => {
     switch (subType) {
@@ -107,14 +105,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
           )}
         </div>
 
-        {/* Countdown timer */}
-        <PrepCountdown
-          key={question.id}
-          prepSeconds={times.prep}
-          recordSeconds={times.record}
-          onPrepEnd={() => setRecordingReady(true)}
-          onRecordEnd={() => onAnswerChange?.("Audio recorded")}
-        />
+
 
         {st === "Describe Image" ? (
           <div className="rounded-xl border-2 border-primary/20 bg-muted/30 p-4 space-y-3">
@@ -145,13 +136,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
           </div>
         )}
 
-        {recordingReady && (
-          <AudioRecorder 
-            onRecordingComplete={() => onAnswerChange?.("Audio recorded")}
-            onTranscription={(text) => onAnswerChange?.(text)}
-            enableSTT={true}
-          />
-        )}
+
       </div>
     );
   }
