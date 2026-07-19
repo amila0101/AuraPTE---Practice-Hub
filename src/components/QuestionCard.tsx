@@ -121,7 +121,8 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
             <AudioPlayer 
               text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} 
               label={st === "Repeat Sentence" ? "Listen and repeat this sentence" : st === "Re-tell Lecture" ? "Listen to the lecture" : "Listen to the question"}
-              autoPlay={false}
+              autoPlay={true}
+              maxPlays={1}
             />
           </div>
         ) : (
@@ -202,9 +203,9 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
         <div className="space-y-4">
           <div className="rounded-lg border bg-amber-500/10 border-amber-500/30 px-4 py-2.5 flex items-center gap-2">
             <span className="text-amber-500 text-sm">🎧</span>
-            <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Real PTE Listening: Audio plays up to <strong>2 times</strong>. Use your attempts wisely!</p>
+            <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Real PTE Listening: Audio plays <strong>only ONCE</strong> automatically.</p>
           </div>
-          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen carefully and type what you hear" autoPlay={false} maxPlays={2} />
+          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen carefully and type what you hear" autoPlay={true} maxPlays={1} />
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-semibold">Type the sentence exactly as you heard it:</p>
             <WritingEditor onChange={(text) => onAnswerChange?.(text)} />
@@ -215,7 +216,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     if (st === "Summarize Spoken Text") {
       return (
         <div className="space-y-4">
-          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the lecture" autoPlay={false} rate={0.85} maxPlays={2} />
+          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the lecture" autoPlay={true} rate={0.85} maxPlays={1} />
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-semibold">Write a summary of 50-70 words. Time limit: 10 minutes.</p>
             <WritingEditor onChange={(text) => onAnswerChange?.(text)} />
@@ -233,7 +234,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
       });
       return (
         <div className="space-y-4">
-          <AudioPlayer text={fullText} label="Listen and fill in the missing words" autoPlay={false} maxPlays={2} />
+          <AudioPlayer text={fullText} label="Listen and fill in the missing words" autoPlay={true} maxPlays={1} />
           <FillInBlanks question={question} onAnswerChange={onAnswerChange} isListening />
         </div>
       );
@@ -255,7 +256,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
       }
       return (
         <div className="space-y-4">
-          <AudioPlayer text={audioText} label="Listen carefully - some words on screen are different from what you hear" autoPlay={false} rate={0.85} maxPlays={2} />
+          <AudioPlayer text={audioText} label="Listen carefully - some words on screen are different from what you hear" autoPlay={true} rate={0.85} maxPlays={1} />
           <HighlightIncorrectWords question={question} onAnswerChange={onAnswerChange} />
         </div>
       );
@@ -264,7 +265,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     if (question.options && question.options.length > 0) {
       return (
         <div className="space-y-4">
-          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the recording" autoPlay={false} rate={0.85} maxPlays={2} />
+          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the recording" autoPlay={true} rate={0.85} maxPlays={1} />
           <MultipleChoice question={question} onAnswerChange={onAnswerChange} isMultiple={false} hideContent />
         </div>
       );
@@ -272,7 +273,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     // Fallback
     return (
       <div className="space-y-4">
-        <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the recording" autoPlay={false} />
+        <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the recording" autoPlay={true} maxPlays={1} />
         <WritingEditor onChange={(text) => onAnswerChange?.(text)} />
       </div>
     );
@@ -340,43 +341,103 @@ function MultipleChoice({ question, onAnswerChange, isMultiple, hideContent }: {
 
 // === RE-ORDER PARAGRAPHS ===
 function ReorderParagraphs({ question, onAnswerChange }: { question: Question; onAnswerChange?: (answer: string) => void }) {
-  const [items, setItems] = useState<string[]>(Array.isArray(question.options) ? question.options : []);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const initialOptions = Array.isArray(question.options) ? question.options : [];
+  const [sourceItems, setSourceItems] = useState<{ id: string, text: string }[]>(
+    initialOptions.map((opt, i) => ({ id: `s-${i}`, text: opt }))
+  );
+  const [targetItems, setTargetItems] = useState<{ id: string, text: string }[]>([]);
+  const [draggedItem, setDraggedItem] = useState<{ list: 'source' | 'target', index: number } | null>(null);
 
-  const moveItem = (from: number, to: number) => {
-    const next = [...items];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    setItems(next);
-    onAnswerChange?.(JSON.stringify(next));
+  const handleDragStart = (list: 'source' | 'target', index: number) => {
+    setDraggedItem({ list, index });
+  };
+
+  const handleDrop = (e: React.DragEvent, targetList: 'source' | 'target', dropIndex?: number) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+
+    let newSource = [...sourceItems];
+    let newTarget = [...targetItems];
+
+    let itemToMove;
+    if (draggedItem.list === 'source') {
+      itemToMove = newSource[draggedItem.index];
+      newSource.splice(draggedItem.index, 1);
+    } else {
+      itemToMove = newTarget[draggedItem.index];
+      newTarget.splice(draggedItem.index, 1);
+    }
+
+    if (targetList === 'source') {
+      newSource.push(itemToMove);
+    } else {
+      if (dropIndex !== undefined) {
+        newTarget.splice(dropIndex, 0, itemToMove);
+      } else {
+        newTarget.push(itemToMove);
+      }
+    }
+
+    setSourceItems(newSource);
+    setTargetItems(newTarget);
+    setDraggedItem(null);
+    onAnswerChange?.(JSON.stringify(newTarget.map(t => t.text)));
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {question.content && (
         <div className="rounded-xl border bg-muted/50 p-4">
           <p className="text-sm text-foreground">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
         </div>
       )}
-      <p className="text-xs text-muted-foreground font-semibold">Drag to reorder the paragraphs into the correct sequence:</p>
-      {items.map((item, i) => (
-        <div
-          key={i}
-          draggable
-          onDragStart={() => setDragIndex(i)}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Source Column */}
+        <div 
+          className="border-2 border-dashed border-border rounded-xl p-4 min-h-[300px] flex flex-col gap-2 bg-card"
           onDragOver={(e) => e.preventDefault()}
-          onDrop={() => { if (dragIndex !== null && dragIndex !== i) moveItem(dragIndex, i); setDragIndex(null); }}
-          className={`flex items-start gap-3 rounded-xl border-2 bg-card p-4 cursor-grab transition-all ${
-            dragIndex === i ? "opacity-50 border-primary" : "border-border hover:border-primary/30"
-          }`}
+          onDrop={(e) => handleDrop(e, 'source')}
         >
-          <GripVertical className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-          <div className="flex items-start gap-2 flex-1">
-            <span className="bg-primary/10 text-primary text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shrink-0">{i + 1}</span>
-            <p className="text-sm leading-relaxed">{item}</p>
-          </div>
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 text-center">Source Paragraphs</div>
+          {sourceItems.map((item, i) => (
+            <div
+              key={item.id}
+              draggable
+              onDragStart={() => handleDragStart('source', i)}
+              className="flex items-start gap-3 rounded-lg border border-primary/20 bg-background p-3 cursor-grab hover:border-primary/50 transition-colors shadow-sm"
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <p className="text-sm leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+          {sourceItems.length === 0 && <div className="m-auto text-sm text-muted-foreground">All items moved</div>}
         </div>
-      ))}
+
+        {/* Target Column */}
+        <div 
+          className="border-2 border-primary/30 rounded-xl p-4 min-h-[300px] flex flex-col gap-2 bg-primary/5"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => handleDrop(e, 'target')}
+        >
+          <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2 text-center">Correct Order</div>
+          {targetItems.map((item, i) => (
+            <div
+              key={item.id}
+              draggable
+              onDragStart={() => handleDragStart('target', i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => { e.stopPropagation(); handleDrop(e, 'target', i); }}
+              className="flex items-start gap-3 rounded-lg border-2 border-primary bg-background p-3 cursor-grab shadow-sm"
+            >
+              <div className="flex items-start gap-2 flex-1">
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shrink-0">{i + 1}</span>
+                <p className="text-sm leading-relaxed">{item.text}</p>
+              </div>
+            </div>
+          ))}
+          {targetItems.length === 0 && <div className="m-auto text-sm text-primary/60 font-semibold">Drag paragraphs here</div>}
+        </div>
+      </div>
     </div>
   );
 }
@@ -387,11 +448,13 @@ function FillInBlanks({ question, onAnswerChange, isListening }: {
 }) {
   const [blanks, setBlanks] = useState<Record<string, string>>({});
   const options = Array.isArray(question.options) ? question.options : [];
+  const [draggedWord, setDraggedWord] = useState<string | null>(null);
+
+  const isReadWrite = question.subType === "Fill in the Blanks (R&W)";
 
   // Parse content to find blanks
   const content = typeof question.content === 'string' ? question.content : JSON.stringify(question.content || "");
   const parts = content.split(/(___BLANK\d+___)/g);
-  const blankKeys = parts.filter(p => p.match(/___BLANK\d+___/)).map(p => p.replace(/___/g, ""));
 
   const updateBlank = (key: string, value: string) => {
     const next = { ...blanks, [key]: value };
@@ -399,38 +462,95 @@ function FillInBlanks({ question, onAnswerChange, isListening }: {
     onAnswerChange?.(JSON.stringify(next));
   };
 
+  const handleDrop = (e: React.DragEvent, key: string) => {
+    e.preventDefault();
+    if (draggedWord) {
+      updateBlank(key, draggedWord);
+      setDraggedWord(null);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {isListening && (
         <div className="text-xs font-bold text-primary uppercase tracking-wider">🎧 Audio Transcript - Fill in the missing words</div>
       )}
-      <div className="rounded-xl border bg-muted/50 p-6 leading-relaxed">
+      <div className="rounded-xl border bg-muted/50 p-6 text-base leading-[2.5] shadow-inner">
         {parts.map((part, i) => {
           const match = part.match(/___BLANK(\d+)___/);
           if (match) {
             const key = `BLANK${match[1]}`;
+            
+            if (isReadWrite) {
+              // R&W: Dropdown selection
+              return (
+                <select
+                  key={i}
+                  className="inline-block mx-1.5 h-8 min-w-[120px] rounded border-2 border-primary/30 bg-background px-2 text-sm focus:border-primary focus:outline-none"
+                  value={blanks[key] || ""}
+                  onChange={(e) => updateBlank(key, e.target.value)}
+                >
+                  <option value="" disabled></option>
+                  {options.map((opt, idx) => (
+                    <option key={idx} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              );
+            }
+            
+            if (isListening) {
+              // Listening: Input box
+              return (
+                <Input
+                  key={i}
+                  className="inline-block w-32 mx-1.5 text-sm h-8 border-2 border-primary/30 bg-background"
+                  value={blanks[key] || ""}
+                  onChange={(e) => updateBlank(key, e.target.value)}
+                />
+              );
+            }
+
+            // Reading FIB: Drag and Drop Zone
             return (
-              <Input
+              <span
                 key={i}
-                className="inline-block w-32 mx-1 text-sm h-8 border-2 border-primary/30 bg-background"
-                placeholder={`blank ${match[1]}`}
-                value={blanks[key] || ""}
-                onChange={(e) => updateBlank(key, e.target.value)}
-              />
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => handleDrop(e, key)}
+                className={`inline-flex items-center justify-center mx-1.5 h-8 min-w-[100px] px-3 rounded border-2 border-dashed transition-colors ${
+                  blanks[key] ? 'border-primary bg-primary/10 text-primary font-bold' : 'border-border bg-background hover:border-primary/50'
+                }`}
+                onDoubleClick={() => { if(blanks[key]) updateBlank(key, "") }} // double click to clear
+              >
+                {blanks[key] || ""}
+              </span>
             );
           }
           return <span key={i}>{part}</span>;
         })}
       </div>
-      {options.length > 0 && !isListening && (
-        <div>
-          <p className="text-xs text-muted-foreground font-semibold mb-2">Word bank (drag or type):</p>
-          <div className="flex flex-wrap gap-2">
-            {options.map((word, i) => (
-              <span key={i} className="bg-primary/10 text-primary text-sm font-semibold px-3 py-1.5 rounded-lg border border-primary/20">
-                {word}
-              </span>
-            ))}
+      
+      {options.length > 0 && !isListening && !isReadWrite && (
+        <div className="rounded-xl border-2 border-border bg-card p-5">
+          <p className="text-xs text-muted-foreground font-semibold mb-3 uppercase tracking-wider text-center">Drag words from here</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {options.map((word, i) => {
+              // If word is already in a blank, we can optionally hide it or dim it.
+              // Standard PTE doesn't hide them, but we can dim it for UX.
+              const isUsed = Object.values(blanks).includes(word);
+              return (
+                <div
+                  key={i}
+                  draggable
+                  onDragStart={() => setDraggedWord(word)}
+                  onDragEnd={() => setDraggedWord(null)}
+                  className={`bg-primary/10 text-primary text-sm font-bold px-4 py-2 rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                    isUsed ? 'opacity-50 border-primary/20' : 'border-primary shadow-sm hover:-translate-y-0.5'
+                  }`}
+                >
+                  {word}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

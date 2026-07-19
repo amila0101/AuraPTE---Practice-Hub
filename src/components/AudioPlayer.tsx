@@ -182,7 +182,7 @@ const AudioPlayer = ({
 
   useEffect(() => {
     if (autoPlay && playCount === 0) {
-      const timer = setTimeout(fetchAndPlay, 500);
+      const timer = setTimeout(fetchAndPlay, 3000); // PTE standard 3-second delay
       return () => clearTimeout(timer);
     }
   }, [autoPlay, playCount, fetchAndPlay]);
@@ -264,7 +264,7 @@ const AudioPlayer = ({
           </Button>
         )}
 
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground font-semibold">
           {isLoading
             ? "Generating audio..."
             : isPlaying
@@ -275,6 +275,8 @@ const AudioPlayer = ({
             ? maxPlays !== undefined
               ? `Played ${playCount}/${maxPlays} time${maxPlays > 1 ? "s" : ""}`
               : "Audio finished"
+            : autoPlay && playCount === 0
+            ? "Playing in 3 seconds..."
             : "Click to listen"}
         </span>
       </div>
