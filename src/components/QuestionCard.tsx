@@ -13,7 +13,7 @@ export interface Question {
   type: "speaking" | "writing" | "reading" | "listening";
   subType: string;
   title: string;
-  content: string;
+  content: any; // Can be malformed by AI
   instruction: string;
   options?: string[] | null;
   correct_answer?: Record<string, unknown> | null;
@@ -128,20 +128,20 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
                 />
               </div>
             ) : (
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line font-mono">{question.content}</p>
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line font-mono">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
             )}
           </div>
         ) : needsAudio ? (
           <div className="space-y-3">
             <AudioPlayer 
-              text={question.content} 
+              text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} 
               label={st === "Repeat Sentence" ? "Listen and repeat this sentence" : st === "Re-tell Lecture" ? "Listen to the lecture" : "Listen to the question"}
               autoPlay={false}
             />
           </div>
         ) : (
           <div className="rounded-xl border bg-muted/50 p-6">
-            <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{question.content}</p>
+            <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
           </div>
         )}
 
@@ -167,7 +167,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
           {st === "Write Essay" && (
             <div className="text-xs font-bold text-primary mb-3 uppercase tracking-wider">✍️ Essay Topic</div>
           )}
-          <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{question.content}</p>
+          <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
         </div>
         <div>
           {st === "Summarize Written Text" && (
@@ -225,7 +225,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
             <span className="text-amber-500 text-sm">🎧</span>
             <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Real PTE Listening: Audio plays up to <strong>2 times</strong>. Use your attempts wisely!</p>
           </div>
-          <AudioPlayer text={question.content} label="Listen carefully and type what you hear" autoPlay={false} maxPlays={2} />
+          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen carefully and type what you hear" autoPlay={false} maxPlays={2} />
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-semibold">Type the sentence exactly as you heard it:</p>
             <WritingEditor onChange={(text) => onAnswerChange?.(text)} />
@@ -236,7 +236,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     if (st === "Summarize Spoken Text") {
       return (
         <div className="space-y-4">
-          <AudioPlayer text={question.content} label="Listen to the lecture" autoPlay={false} rate={0.85} maxPlays={2} />
+          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the lecture" autoPlay={false} rate={0.85} maxPlays={2} />
           <div>
             <p className="text-xs text-muted-foreground mb-2 font-semibold">Write a summary of 50-70 words. Time limit: 10 minutes.</p>
             <WritingEditor onChange={(text) => onAnswerChange?.(text)} />
@@ -246,7 +246,8 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     }
     if (st === "Fill in the Blanks") {
       // For listening fill in blanks, get the full text (without blanks) for audio
-      const fullText = question.content.replace(/___BLANK\d+___/g, (match) => {
+      const safeContent = typeof question.content === 'string' ? question.content : JSON.stringify(question.content || "");
+      const fullText = safeContent.replace(/___BLANK\d+___/g, (match) => {
         const key = match.replace(/___/g, "");
         const ca = question.correct_answer as Record<string, Record<string, string>> | null;
         return ca?.blanks?.[key] || "blank";
@@ -262,7 +263,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
       // For this type, the audio says the CORRECT version, the screen shows incorrect words
       // Build the correct audio text from correct_answer
       const ca = question.correct_answer as { incorrect_words?: Array<{ word: string; correct_word: string; position: number }> } | null;
-      let audioText = question.content || "";
+      let audioText = typeof question.content === 'string' ? question.content : JSON.stringify(question.content || "");
       if (ca?.incorrect_words && Array.isArray(ca.incorrect_words)) {
         const words = audioText.split(/\s+/);
         for (const iw of ca.incorrect_words) {
@@ -284,7 +285,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     if (question.options && question.options.length > 0) {
       return (
         <div className="space-y-4">
-          <AudioPlayer text={question.content} label="Listen to the recording" autoPlay={false} rate={0.85} maxPlays={2} />
+          <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the recording" autoPlay={false} rate={0.85} maxPlays={2} />
           <MultipleChoice question={question} onAnswerChange={onAnswerChange} isMultiple={false} hideContent />
         </div>
       );
@@ -292,7 +293,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
     // Fallback
     return (
       <div className="space-y-4">
-        <AudioPlayer text={question.content} label="Listen to the recording" autoPlay={false} />
+        <AudioPlayer text={typeof question.content === 'string' ? question.content : JSON.stringify(question.content)} label="Listen to the recording" autoPlay={false} />
         <WritingEditor onChange={(text) => onAnswerChange?.(text)} />
       </div>
     );
@@ -301,7 +302,7 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
   // Fallback
   return (
     <div className="rounded-xl border bg-muted/50 p-6">
-      <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{question.content}</p>
+      <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
     </div>
   );
 }
@@ -330,7 +331,7 @@ function MultipleChoice({ question, onAnswerChange, isMultiple, hideContent }: {
     <div className="space-y-3">
       {!hideContent && (
         <div className="rounded-xl border bg-muted/50 p-6">
-          <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{question.content}</p>
+          <p className="text-base leading-relaxed text-foreground whitespace-pre-line">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
         </div>
       )}
       <p className="text-xs text-muted-foreground font-semibold">
@@ -375,7 +376,7 @@ function ReorderParagraphs({ question, onAnswerChange }: { question: Question; o
     <div className="space-y-3">
       {question.content && (
         <div className="rounded-xl border bg-muted/50 p-4">
-          <p className="text-sm text-foreground">{question.content}</p>
+          <p className="text-sm text-foreground">{typeof question.content === 'string' ? question.content : JSON.stringify(question.content)}</p>
         </div>
       )}
       <p className="text-xs text-muted-foreground font-semibold">Drag to reorder the paragraphs into the correct sequence:</p>
@@ -409,7 +410,7 @@ function FillInBlanks({ question, onAnswerChange, isListening }: {
   const options = Array.isArray(question.options) ? question.options : [];
 
   // Parse content to find blanks
-  const content = question.content || "";
+  const content = typeof question.content === 'string' ? question.content : JSON.stringify(question.content || "");
   const parts = content.split(/(___BLANK\d+___)/g);
   const blankKeys = parts.filter(p => p.match(/___BLANK\d+___/)).map(p => p.replace(/___/g, ""));
 
@@ -460,7 +461,7 @@ function FillInBlanks({ question, onAnswerChange, isListening }: {
 
 // === HIGHLIGHT INCORRECT WORDS ===
 function HighlightIncorrectWords({ question, onAnswerChange }: { question: Question; onAnswerChange?: (answer: string) => void }) {
-  const content = question.content || "";
+  const content = typeof question.content === 'string' ? question.content : JSON.stringify(question.content || "");
   const words = content.split(/\s+/);
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
