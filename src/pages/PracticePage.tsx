@@ -28,10 +28,10 @@ const PracticePage = () => {
   const generateQuestion = useGenerateQuestion();
   const scoreAnswer = useScoreAnswer();
 
-  const isSpeakingQuestion = question?.skill === "speaking";
-
   const question = questions[currentIndex];
   const total = questions.length;
+  
+  const isSpeakingQuestion = question?.skill === "speaking";
 
   // Jump to specific question if id is provided
   useEffect(() => {
