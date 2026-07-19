@@ -306,7 +306,7 @@ CRITICAL RULES:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are a PTE exam expert. Return ONLY valid JSON with no markdown formatting, no code blocks, no extra text." },
           { role: "user", content: prompt },
@@ -360,7 +360,7 @@ CRITICAL RULES:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
+            model: "gemini-2.5-flash",
             messages: [{ role: "user", content: imagePrompt }],
             modalities: ["image", "text"],
           }),
