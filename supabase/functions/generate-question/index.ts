@@ -264,7 +264,6 @@ serve(async (req) => {
     const selectedExamType = exam_type || "pte_academic";
 
     // Check for existing question with same skill + sub_type to prevent duplicates
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
