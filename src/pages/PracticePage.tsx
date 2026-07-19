@@ -103,8 +103,11 @@ const PracticePage = () => {
       form.append("question_id", question.id);
       form.append("time_spent_seconds", String(Math.round((Date.now() - startTime) / 1000)));
 
+      // Extract the base URL from our already-configured Supabase client
+      const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || "https://mqemlgygwvtrzbxfirnu.supabase.co";
+      
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/score-speaking`,
+        `${supabaseUrl}/functions/v1/score-speaking`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}` },

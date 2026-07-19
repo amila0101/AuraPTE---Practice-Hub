@@ -636,7 +636,7 @@ suggestions: 2 tips.`,
 async function scoreWithAI(
   question: Question,
   answerText: string,
-  lovableApiKey: string
+  geminiApiKey: string
 ): Promise<ScoreResult> {
   const req = getAISubScoreRequest(question, answerText);
 
@@ -649,10 +649,10 @@ async function scoreWithAI(
   "word_count_penalty": <boolean, optional>
 }`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${lovableApiKey}`,
+      Authorization: `Bearer ${geminiApiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -760,8 +760,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -796,7 +796,7 @@ serve(async (req) => {
       scoreResult = deterministicResult;
     } else {
       // AI scoring — Gemini returns raw sub-scores, we apply weights
-      scoreResult = await scoreWithAI(q, answer_text, LOVABLE_API_KEY);
+      scoreResult = await scoreWithAI(q, answer_text, GEMINI_API_KEY);
     }
 
     // ── PERSIST to Supabase ──────────────────────────────────────────────────

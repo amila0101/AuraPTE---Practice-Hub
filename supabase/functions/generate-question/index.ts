@@ -252,8 +252,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const { skill, sub_type, difficulty, exam_type } = await req.json();
 
@@ -300,10 +300,10 @@ CRITICAL RULES:
 6. Return ONLY valid JSON. No markdown, no code blocks, no explanation.
 7. Difficulty level: ${selectedDifficulty} (easy = straightforward vocabulary, medium = standard academic, hard = complex academic vocabulary and concepts).`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -354,10 +354,10 @@ CRITICAL RULES:
       try {
         const imagePrompt = `Create a clean, professional academic chart or graph based on this description. Make it look like a real infographic or data visualization you'd see in a PTE exam. Use clear labels, a title, and a legend. No text outside the chart. White background.\n\nDescription: ${questionData.content}`;
         
-        const imgResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const imgResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            Authorization: `Bearer ${GEMINI_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
