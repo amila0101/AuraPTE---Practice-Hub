@@ -4,5 +4,4 @@ compatibility_date = "2026-07-17"
 # Serve static React/Vite assets from the dist folder
 [assets]
 directory = "./dist"
-binding = "ASSETS"
 not_found_handling = "single-page-application"
