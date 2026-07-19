@@ -202,7 +202,7 @@ const PracticePage = () => {
         {question && (
           <QuestionCard
             question={{
-              id: parseInt(question.id.slice(0, 8), 16),
+              id: question.id,
               type: question.skill as "speaking" | "writing" | "reading" | "listening",
               subType: question.sub_type,
               title: question.title,

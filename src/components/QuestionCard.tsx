@@ -9,7 +9,7 @@ import { Button } from "./ui/button";
 import { GripVertical } from "lucide-react";
 
 export interface Question {
-  id: number;
+  id: number | string;
   type: "speaking" | "writing" | "reading" | "listening";
   subType: string;
   title: string;
@@ -262,13 +262,12 @@ function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onA
       // For this type, the audio says the CORRECT version, the screen shows incorrect words
       // Build the correct audio text from correct_answer
       const ca = question.correct_answer as { incorrect_words?: Array<{ word: string; correct_word: string; position: number }> } | null;
-      let audioText = question.content;
-      if (ca?.incorrect_words) {
+      let audioText = question.content || "";
+      if (ca?.incorrect_words && Array.isArray(ca.incorrect_words)) {
         const words = audioText.split(/\s+/);
         for (const iw of ca.incorrect_words) {
-          if (iw.position < words.length) {
-            // Remove punctuation from word for replacement, keep punctuation
-            const punct = words[iw.position].replace(/[a-zA-Z'-]/g, "");
+          if (iw && iw.position < words.length && iw.correct_word) {
+            const punct = (words[iw.position] || "").replace(/[a-zA-Z'-]/g, "");
             words[iw.position] = iw.correct_word + punct;
           }
         }
@@ -312,7 +311,7 @@ function MultipleChoice({ question, onAnswerChange, isMultiple, hideContent }: {
   question: Question; onAnswerChange?: (answer: string) => void; isMultiple: boolean; hideContent?: boolean;
 }) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const options = question.options || [];
+  const options = Array.isArray(question.options) ? question.options : [];
 
   const toggle = (i: number) => {
     const next = new Set(selected);
@@ -361,7 +360,7 @@ function MultipleChoice({ question, onAnswerChange, isMultiple, hideContent }: {
 
 // === RE-ORDER PARAGRAPHS ===
 function ReorderParagraphs({ question, onAnswerChange }: { question: Question; onAnswerChange?: (answer: string) => void }) {
-  const [items, setItems] = useState<string[]>(question.options || []);
+  const [items, setItems] = useState<string[]>(Array.isArray(question.options) ? question.options : []);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const moveItem = (from: number, to: number) => {
@@ -407,10 +406,11 @@ function FillInBlanks({ question, onAnswerChange, isListening }: {
   question: Question; onAnswerChange?: (answer: string) => void; isListening?: boolean;
 }) {
   const [blanks, setBlanks] = useState<Record<string, string>>({});
-  const options = question.options || [];
+  const options = Array.isArray(question.options) ? question.options : [];
 
   // Parse content to find blanks
-  const parts = question.content.split(/(___BLANK\d+___)/g);
+  const content = question.content || "";
+  const parts = content.split(/(___BLANK\d+___)/g);
   const blankKeys = parts.filter(p => p.match(/___BLANK\d+___/)).map(p => p.replace(/___/g, ""));
 
   const updateBlank = (key: string, value: string) => {
@@ -460,7 +460,8 @@ function FillInBlanks({ question, onAnswerChange, isListening }: {
 
 // === HIGHLIGHT INCORRECT WORDS ===
 function HighlightIncorrectWords({ question, onAnswerChange }: { question: Question; onAnswerChange?: (answer: string) => void }) {
-  const words = question.content.split(/\s+/);
+  const content = question.content || "";
+  const words = content.split(/\s+/);
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const toggleWord = (i: number) => {
