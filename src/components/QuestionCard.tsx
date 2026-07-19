@@ -7,6 +7,7 @@ import WritingEditor from "./WritingEditor";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { GripVertical } from "lucide-react";
+import { getSpeakingPreparationTimes } from "@/lib/pteTimings";
 
 export interface Question {
   id: number | string;
@@ -67,22 +68,15 @@ const QuestionCard = ({ question, direction, onAnswerChange }: QuestionCardProps
 // Sub-type specific rendering
 function SubTypeRenderer({ question, onAnswerChange }: { question: Question; onAnswerChange?: (answer: string) => void }) {
   const st = question.subType;
-  // Prep/record times based on sub-type (matching real PTE timings)
-  const getSpeakingTimes = (subType: string) => {
-    switch (subType) {
-      case "Read Aloud": return { prep: 40, record: 35 };
-      case "Repeat Sentence": return { prep: 3, record: 15 };
-      case "Describe Image": return { prep: 25, record: 40 };
-      case "Re-tell Lecture": return { prep: 10, record: 40 };
-      case "Answer Short Question": return { prep: 3, record: 10 };
-      default: return { prep: 30, record: 30 };
-    }
+  // Prep/record times based on sub-type and content
+  const getSpeakingTimes = (subType: string, content: any) => {
+    return getSpeakingPreparationTimes(subType, content);
   };
 
   // === SPEAKING ===
   if (question.type === "speaking") {
     const needsAudio = ["Repeat Sentence", "Re-tell Lecture", "Answer Short Question"].includes(st);
-    const times = getSpeakingTimes(st);
+    const times = getSpeakingTimes(st, question.content);
 
     return (
       <div className="space-y-4">

@@ -32,3 +32,30 @@ export function getQuestionTimeLimit(skill: string, subType: string): number {
 
   return timings[skill]?.[subType] ?? 2;
 }
+
+// Get dynamic preparation and recording times for Speaking questions
+export function getSpeakingPreparationTimes(subType: string, content?: any): { prep: number; record: number } {
+  let wordCount = 0;
+  if (typeof content === 'string') {
+    wordCount = content.trim().split(/\s+/).length;
+  } else if (content) {
+    wordCount = JSON.stringify(content).split(/\s+/).length;
+  }
+
+  switch (subType) {
+    case "Read Aloud":
+      // Standard PTE: <= 60 words gets 35s, > 60 words gets 40s
+      if (wordCount > 60) return { prep: 40, record: 40 };
+      return { prep: 35, record: 35 };
+    case "Repeat Sentence":
+      return { prep: 3, record: 15 };
+    case "Describe Image":
+      return { prep: 25, record: 40 };
+    case "Re-tell Lecture":
+      return { prep: 10, record: 40 };
+    case "Answer Short Question":
+      return { prep: 3, record: 10 };
+    default:
+      return { prep: 30, record: 30 };
+  }
+}

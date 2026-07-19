@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Timer from "@/components/Timer";
 import QuestionCard from "@/components/QuestionCard";
 import AudioRecorder from "@/components/AudioRecorder";
-import { getQuestionTimeLimit } from "@/lib/pteTimings";
+import { getQuestionTimeLimit, getSpeakingPreparationTimes } from "@/lib/pteTimings";
 import { useQuestions, useGenerateQuestion, useScoreAnswer, type Question } from "@/hooks/useQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ const PracticePage = () => {
   const total = questions.length;
   
   const isSpeakingQuestion = question?.skill === "speaking";
+  const speakingTimes = isSpeakingQuestion && question ? getSpeakingPreparationTimes(question.sub_type, question.content) : { prep: 0, record: 0 };
 
   // Jump to specific question if id is provided
   useEffect(() => {
@@ -231,15 +232,8 @@ const PracticePage = () => {
             </div>
             <AudioRecorder
               key={audioRecorderKeyRef.current}
-              prepSeconds={question.sub_type === "Read Aloud" ? 35
-                         : question.sub_type === "Repeat Sentence" ? 0
-                         : question.sub_type === "Describe Image" ? 25
-                         : 0}
-              maxSeconds={question.sub_type === "Read Aloud" ? 40
-                        : question.sub_type === "Repeat Sentence" ? 15
-                        : question.sub_type === "Describe Image" ? 40
-                        : question.sub_type === "Re-tell Lecture" ? 40
-                        : 10}
+              prepSeconds={speakingTimes.prep}
+              maxSeconds={speakingTimes.record}
               autoStart={true}
               onSubmit={handleAudioSubmit}
               disabled={isScoringAudio}
