@@ -46,14 +46,19 @@ const useCreateMockTest = () => {
         throw new Error("No questions available. Generate some questions first!");
       }
 
-      // Pick questions for mock test (up to limits per skill)
-      const limits: Record<string, number> = { speaking: 16, writing: 3, reading: 15, listening: 12 };
+      // Standard PTE Exam limits
+      const limitsPteAcademic: Record<string, number> = { speaking: 27, writing: 3, reading: 15, listening: 14 };
+      const limitsPteCore: Record<string, number> = { speaking: 25, writing: 4, reading: 13, listening: 11 };
+      
+      const limits = examType === "pte_core" ? limitsPteCore : limitsPteAcademic;
       const selectedIds: string[] = [];
       const sections: Record<string, number> = { speaking: 0, writing: 0, reading: 0, listening: 0 };
 
       for (const skill of Object.keys(limits)) {
         const skillQs = questions.filter((q) => q.skill === skill);
+        // Shuffle all available questions
         const shuffled = skillQs.sort(() => Math.random() - 0.5);
+        // Take up to the limit (if we don't have enough, it takes all available for that skill)
         const picked = shuffled.slice(0, limits[skill]);
         picked.forEach((q) => selectedIds.push(q.id));
         sections[skill] = picked.length;
@@ -93,12 +98,12 @@ const examTypes = [
     emoji: "🎓",
     desc: "Full format exam · S+W+R+L",
     sections: [
-      { label: "Speaking", count: 16, icon: "🎤" },
+      { label: "Speaking", count: 27, icon: "🎤" },
       { label: "Writing",  count: 3,  icon: "✍️" },
       { label: "Reading",  count: 15, icon: "📖" },
-      { label: "Listening",count: 12, icon: "🎧" },
+      { label: "Listening",count: 14, icon: "🎧" },
     ],
-    duration: "~3 hrs",
+    duration: "~2 hrs 15 mins",
     color: "text-primary",
     bg: "bg-primary/10",
     border: "border-primary",
@@ -109,15 +114,15 @@ const examTypes = [
     emoji: "🏫",
     desc: "Canadian immigration format · S+W+R+L",
     sections: [
-      { label: "Speaking", count: 10, icon: "🎤" },
+      { label: "Speaking", count: 25, icon: "🎤" },
       { label: "Writing",  count: 4,  icon: "✍️" },
       { label: "Reading",  count: 13, icon: "📖" },
-      { label: "Listening",count: 10, icon: "🎧" },
+      { label: "Listening",count: 11, icon: "🎧" },
     ],
     duration: "~2 hrs",
-    color: "text-blue-400",
+    color: "text-blue-500",
     bg: "bg-blue-500/10",
-    border: "border-blue-400",
+    border: "border-blue-500",
   },
 ] as const;
 
