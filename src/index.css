@@ -139,6 +139,31 @@
     box-shadow: 0 1px 0 0 hsl(var(--primary) / 0.4);
     transform: translateY(3px);
   }
+
+  /* Dashboard Next-Gen UI Classes */
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-3xl overflow-hidden transition-all duration-300 relative;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-card:hover {
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .mesh-gradient-bg {
+    background-color: hsl(var(--background));
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(var(--primary)/0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(var(--accent)/0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(var(--info)/0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(var(--primary)/0.1) 0px, transparent 50%);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 20px hsla(var(--primary)/0.4);
+  }
 }
 
 @keyframes wave {
