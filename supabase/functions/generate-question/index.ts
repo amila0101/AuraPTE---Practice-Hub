@@ -263,24 +263,11 @@ serve(async (req) => {
     const selectedDifficulty = difficulty || "medium";
     const selectedExamType = exam_type || "pte_academic";
 
-    // Check for existing question with same skill + sub_type to prevent duplicates
+    // Initialize supabase client for DB inserts
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: existing } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("skill", selectedSkill)
-      .eq("sub_type", selectedSubType)
-      .eq("exam_type", selectedExamType)
-      .limit(1)
-      .single();
-
-    if (existing) {
-      return new Response(JSON.stringify(existing), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // We removed the duplicate check here so users can generate as many questions as they want
 
     const subTypePrompt = getSubTypePrompt(selectedSubType, selectedDifficulty, selectedExamType);
 
